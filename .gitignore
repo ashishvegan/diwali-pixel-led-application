@@ -1,0 +1,8 @@
+# Compiler and linker intermediates
+*.elf
+*.map
+
+# Temporary files
+*.tmp*
+.DS_Store
+Thumbs.db
