@@ -86,7 +86,7 @@ Diwali.Pixel.LED.ESP8266/
 1. **Common Ground is Critical**: Connect the **GND** of the ESP8266 directly to the **GND (-)** of the LED power supply. Without common ground, the data signal will experience erratic flashing.
 2. **Data Pin**: Connect ESP8266 **Pin D2 (GPIO 4)** to the **Data Input (DIN)** of the first WS2811 pixel. A **330Ω to 470Ω resistor** in series between D2 and DIN protects the first LED from voltage spikes.
 3. **Power Requirement**: 48 LEDs at full white draw up to ~2.8A. A **12V / 5V 3A (or 5A) power adapter** is recommended for bright gallery illumination.
-4. **Color Order**: Most 12V WS2811 bullet pixels sold for Indian festive decor use `BRG` or `RGB`. The code is pre-set to `#define COLOR_ORDER BRG`. If red and green/blue look swapped, change this line in the `.ino` file to `RGB` or `GRB`.
+4. **Color Order**: Most 12V WS2811 bullet pixels use `RGB` or `BRG`. The code is pre-set to `#define COLOR_ORDER RGB` (Red = Red, Lime = Green, Blue = Blue). If your specific strip has swapped colors, you can change this line in the `.ino` file to `BRG` or `GRB`.
 
 ---
 
