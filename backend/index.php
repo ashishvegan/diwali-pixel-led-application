@@ -99,6 +99,33 @@
                 <span class="switch-slider"></span>
             </label>
         </div>
+
+        <!-- Flow Direction Reverse Toggle -->
+        <div class="sparkle-row">
+            <div class="sparkle-label">
+                <span>↔️</span>
+                <span>Flip Wiring / Flow Direction</span>
+            </div>
+            <label class="switch">
+                <input type="checkbox" id="reverseToggle">
+                <span class="switch-slider"></span>
+            </label>
+        </div>
+
+        <!-- Backend Random Color Flasher / Heartbeat Shuffler Toggle -->
+        <div class="sparkle-row" style="background: rgba(236, 72, 153, 0.12); border: 1px solid rgba(236, 72, 153, 0.3); border-radius: 12px; padding: 10px 14px; margin-top: 6px;">
+            <div class="sparkle-label" style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 1.3rem;">🎲</span>
+                <div style="text-align: left;">
+                    <div style="font-weight: 600; color: #f472b6; font-size: 0.92rem;">Random Color Flasher / Shuffler</div>
+                    <div style="font-size: 0.72rem; color: #cbd5e1; margin-top: 2px;">Auto-cycles random festive colors on Heartbeat Pulse & All patterns (No reflash needed!)</div>
+                </div>
+            </div>
+            <label class="switch">
+                <input type="checkbox" id="randomColorsToggle">
+                <span class="switch-slider"></span>
+            </label>
+        </div>
     </section>
 
     <!-- Tabbed Content Area -->

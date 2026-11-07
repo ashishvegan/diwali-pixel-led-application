@@ -16,6 +16,8 @@ let appState = {
     color1: "#ff7700",
     color2: "#ff0044",
     sparkle: 1,
+    reverse: 0,
+    random_colors: 0,
     version: 1
 };
 
@@ -88,10 +90,10 @@ const PATTERNS = [
     {
         id: 8,
         name: "Festive Heartbeat Pulse",
-        tag: "Dynamic",
+        tag: "Dynamic Pulse",
         badgeClass: "badge-festive",
         icon: "💓",
-        desc: "Rhythmic festive throb with glowing echoes radiating across the strip"
+        desc: "Rhythmic festive heartbeat pulse radiating across the gallery (Turn ON Random Color Flasher for auto-changing colors!)"
     },
     {
         id: 9,
@@ -161,6 +163,7 @@ const SINGLE_SWATCHES = [
 
 // Festive Presets
 const PRESETS = [
+    { name: "Heartbeat Random Shuffle", sub: "Dynamic pulse with cycling colors", c1: "#ff0055", c2: "#00f5d4", pattern: 8 },
     { name: "Laxmi Puja Gold", sub: "Amber & Saffron", c1: "#ff9100", c2: "#e01a4f", pattern: 0 },
     { name: "Peacock Festival", sub: "Cyan & Gold", c1: "#00f5d4", c2: "#ffb703", pattern: 5 },
     { name: "Phuljhadi Spark", sub: "Golden Fireworks", c1: "#ffc300", c2: "#ffffff", pattern: 1 },
@@ -324,12 +327,40 @@ function setupEventListeners() {
 
     // Sparkle Toggle
     const sparkleToggle = document.getElementById("sparkleToggle");
-    sparkleToggle.addEventListener("change", (e) => {
-        haptic();
-        appState.sparkle = e.target.checked ? 1 : 0;
-        queueStateSave();
-        showToast(appState.sparkle ? "Sparkles Enabled ✨" : "Sparkles Disabled");
-    });
+    if (sparkleToggle) {
+        sparkleToggle.addEventListener("change", (e) => {
+            haptic();
+            appState.sparkle = e.target.checked ? 1 : 0;
+            saveStateImmediate();
+            showToast(appState.sparkle ? "Sparkles Enabled ✨" : "Sparkles Disabled");
+        });
+    }
+
+    // Flip Wiring / Direction Toggle
+    const reverseToggle = document.getElementById("reverseToggle");
+    if (reverseToggle) {
+        reverseToggle.addEventListener("change", (e) => {
+            haptic();
+            appState.reverse = e.target.checked ? 1 : 0;
+            saveStateImmediate();
+            showToast(appState.reverse ? "Flow Direction Inverted ↔️" : "Normal Direction ➡️");
+        });
+    }
+
+    // Random Colors Auto-Cycle Toggle
+    const randomColorsToggle = document.getElementById("randomColorsToggle");
+    if (randomColorsToggle) {
+        randomColorsToggle.addEventListener("change", (e) => {
+            haptic();
+            appState.random_colors = e.target.checked ? 1 : 0;
+            saveStateImmediate();
+            if (appState.random_colors) {
+                showToast("🎲 Random Color Flasher Active! Auto-cycling colors...");
+            } else {
+                showToast("Static Colors Restored 🎨");
+            }
+        });
+    }
 
     // Color Pickers
     const color1Input = document.getElementById("color1Input");
@@ -406,6 +437,9 @@ function applyPreset(index) {
     appState.pattern = preset.pattern;
     const pat = PATTERNS.find(p => p.id === preset.pattern);
     if (pat) appState.pattern_name = pat.name;
+    if (preset.name.includes("Random")) {
+        appState.random_colors = 1;
+    }
     if (!appState.power) appState.power = 1;
 
     updateUI();
@@ -435,7 +469,16 @@ function updateUI() {
     document.getElementById("speedValue").textContent = `${appState.speed}%`;
 
     // Sparkle
-    document.getElementById("sparkleToggle").checked = (appState.sparkle === 1);
+    const sparkleEl = document.getElementById("sparkleToggle");
+    if (sparkleEl) sparkleEl.checked = (appState.sparkle === 1);
+
+    // Reverse Direction
+    const reverseEl = document.getElementById("reverseToggle");
+    if (reverseEl) reverseEl.checked = (appState.reverse === 1);
+
+    // Random Colors Auto-Cycle
+    const randomColorsEl = document.getElementById("randomColorsToggle");
+    if (randomColorsEl) randomColorsEl.checked = (appState.random_colors === 1);
 
     // Color Pickers
     document.getElementById("color1Input").value = appState.color1;
@@ -596,8 +639,21 @@ function blend(c1, c2, ratio) {
 function renderSimulatorLoop() {
     animFrame++;
     const t = animFrame * (appState.speed / 50) * 0.04;
-    const c1 = hexToRgb(appState.color1);
-    const c2 = hexToRgb(appState.color2);
+    let c1 = hexToRgb(appState.color1);
+    let c2 = hexToRgb(appState.color2);
+
+    if (appState.random_colors) {
+        // Festive palette for local 60 FPS simulator auto-cycling
+        const festivePalette = [
+            "#ff0055", "#00f5d4", "#ffb703", "#7b2cbf", "#ff5400", 
+            "#06d6a0", "#118ab2", "#ef476f", "#ffd166", "#7209b7", 
+            "#f72585", "#4cc9f0", "#ff007f", "#3a86ff", "#00ff88", "#ff3300"
+        ];
+        const cycleIdx = Math.floor(animFrame / 180) % festivePalette.length;
+        const cycleIdx2 = (cycleIdx + 4) % festivePalette.length;
+        c1 = hexToRgb(festivePalette[cycleIdx]);
+        c2 = hexToRgb(festivePalette[cycleIdx2]);
+    }
 
     if (!appState.power) {
         // Lights OFF
@@ -841,7 +897,8 @@ function drawLedsOnCanvas() {
 
     for (let i = 0; i < NUM_LEDS; i++) {
         const x = spacing * i + spacing / 2;
-        const led = virtualLeds[i];
+        const ledIndex = appState.reverse ? (NUM_LEDS - 1 - i) : i;
+        const led = virtualLeds[ledIndex];
         const r = Math.min(255, Math.floor(led.r * bMult));
         const g = Math.min(255, Math.floor(led.g * bMult));
         const b = Math.min(255, Math.floor(led.b * bMult));

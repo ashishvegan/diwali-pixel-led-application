@@ -518,6 +518,16 @@ void runActivePattern() {
     }
 
     applySparkles();
+
+    // If reversed wiring direction is enabled, flip the buffer in-place
+    if (currentSettings.reverse) {
+        for (int i = 0; i < NUM_LEDS / 2; i++) {
+            CRGB temp = leds[i];
+            leds[i] = leds[NUM_LEDS - 1 - i];
+            leds[NUM_LEDS - 1 - i] = temp;
+        }
+    }
+
     FastLED.setBrightness(currentSettings.brightness);
     FastLED.show();
 }
@@ -556,6 +566,7 @@ void syncWithBackend() {
             CRGB newC1 = CRGB(currentSettings.r1, currentSettings.g1, currentSettings.b1);
             CRGB newC2 = CRGB(currentSettings.r2, currentSettings.g2, currentSettings.b2);
             uint8_t newSparkle = currentSettings.sparkle;
+            uint8_t newReverse = currentSettings.reverse;
             uint32_t incomingVersion = 0;
 
             if (!error && doc["status"] == "success") {
@@ -569,6 +580,8 @@ void syncWithBackend() {
                 const char* c2Hex = doc["state"]["color2"] | "#ff0044";
                 newC2 = hexToCRGB(c2Hex);
                 newSparkle = doc["state"]["sparkle"] | 1;
+                newReverse = doc["state"]["reverse"] | 0;
+                newReverse = doc["state"]["reverse"] | 0;
                 gotData = true;
             } else {
                 // FALLBACK: Lightweight parser in case JSON library encounters unexpected syntax
@@ -614,6 +627,11 @@ void syncWithBackend() {
                 if (currentSettings.sparkle != newSparkle) { 
                     currentSettings.sparkle = newSparkle; 
                     changed = true; 
+                }
+                if (currentSettings.reverse != newReverse) { 
+                    currentSettings.reverse = newReverse; 
+                    changed = true; 
+                    Serial.printf("[HTTP] Reverse Direction: %s\n", newReverse ? "ON" : "OFF");
                 }
 
                 if (changed) {

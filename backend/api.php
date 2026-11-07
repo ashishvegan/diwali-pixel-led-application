@@ -27,7 +27,7 @@ $stateFile = __DIR__ . '/state.json';
 // Default state if state.json does not exist
 $defaultState = array(
     "power" => 1,                 // 1 = ON, 0 = OFF
-    "pattern" => 0,               // 0 to 11 (Pattern ID)
+    "pattern" => 0,               // 0 to 14 (Pattern ID)
     "pattern_name" => "Diwali Diya Flame",
     "brightness" => 200,          // 0 to 255
     "speed" => 50,                // 1 to 100
@@ -35,6 +35,8 @@ $defaultState = array(
     "color2" => "#ff0044",        // Secondary Crimson
     "sparkle" => 1,               // 0 or 1
     "reverse" => 0,               // 0 = Normal, 1 = Reversed Flow
+    "random_colors" => 0,         // 1 = Backend Auto-Cycle Random Colors on every poll/pulse
+    "last_random_cycle" => 0,     // Timestamp of last random color change
     "updated_at" => time(),
     "last_esp_seen" => 0,
     "version" => 1
@@ -86,6 +88,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' || $action === 'get') {
         saveState($stateFile, $state);
     }
 
+    // Backend-driven Random Color Flasher:
+    // Dynamically cycles Color 1 & Color 2 every 2 seconds without needing an ESP reflash!
+    $isRandomMode = !empty($state['random_colors']);
+    if ($isRandomMode) {
+        $now = time();
+        $lastCycle = isset($state['last_random_cycle']) ? (int)$state['last_random_cycle'] : 0;
+        if (($now - $lastCycle) >= 2) {
+            $festivePalette = array(
+                "#ff0055", "#00f5d4", "#ffb703", "#7b2cbf", "#ff5400", 
+                "#06d6a0", "#118ab2", "#ef476f", "#ffd166", "#7209b7", 
+                "#f72585", "#4cc9f0", "#ff007f", "#3a86ff", "#ff9e00"
+            );
+            $k1 = array_rand($festivePalette);
+            $k2 = array_rand($festivePalette);
+            if ($k1 === $k2) {
+                $k2 = ($k1 + 1) % count($festivePalette);
+            }
+            $state['color1'] = $festivePalette[$k1];
+            $state['color2'] = $festivePalette[$k2];
+            $state['last_random_cycle'] = $now;
+            $state['version'] = ((int)$state['version']) + 1;
+            $state['updated_at'] = $now;
+            saveState($stateFile, $state);
+        }
+    }
+
     $lastSeen = isset($state['last_esp_seen']) ? (int)$state['last_esp_seen'] : 0;
     $isEspOnline = (time() - $lastSeen) <= 15;
     
@@ -104,6 +132,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' || $action === 'get') {
             "color2" => isset($state['color2']) ? $state['color2'] : "#ff0044",
             "sparkle" => isset($state['sparkle']) ? (int)$state['sparkle'] : 1,
             "reverse" => isset($state['reverse']) ? (int)$state['reverse'] : 0,
+            "random_colors" => isset($state['random_colors']) ? (int)$state['random_colors'] : 0,
             "version" => isset($state['version']) ? (int)$state['version'] : 1,
             "updated_at" => isset($state['updated_at']) ? (int)$state['updated_at'] : time()
         )
@@ -165,6 +194,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || $action === 'set') {
     }
     if (isset($payload['sparkle'])) {
         $state['sparkle'] = $payload['sparkle'] ? 1 : 0;
+        $changed = true;
+    }
+    if (isset($payload['reverse'])) {
+        $state['reverse'] = $payload['reverse'] ? 1 : 0;
+        $changed = true;
+    }
+    if (isset($payload['random_colors'])) {
+        $state['random_colors'] = $payload['random_colors'] ? 1 : 0;
+        if ($state['random_colors'] == 1) {
+            $festivePalette = array(
+                "#ff0055", "#00f5d4", "#ffb703", "#7b2cbf", "#ff5400", 
+                "#06d6a0", "#118ab2", "#ef476f", "#ffd166", "#7209b7", 
+                "#f72585", "#4cc9f0", "#ff007f", "#3a86ff", "#00ff88", "#ff3300"
+            );
+            $k1 = array_rand($festivePalette);
+            $k2 = ($k1 + 4) % count($festivePalette);
+            $state['color1'] = $festivePalette[$k1];
+            $state['color2'] = $festivePalette[$k2];
+            $state['last_random_cycle'] = time();
+        }
         $changed = true;
     }
 

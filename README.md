@@ -30,6 +30,12 @@ A complete, production-ready smart lighting system designed for gallery and home
   15. **Solid Single Color**: Pure, uniform single shade across all 48 LEDs with instant 1-tap palette swatches.
 - **Dedicated Single Color Setting**:
   - 1-tap quick swatches (Warm Diya, Pure Gold, Warm White 2400K, Pure White, Ruby Red, Peacock Teal, etc.) to set the entire gallery to a single shade instantly.
+- **Backend-Driven Random Color Flasher / Shuffler (Zero Firmware Reflash Required)**:
+  - Dynamically cycles random vibrant festive colors every ~3 seconds directly via `api.php`.
+  - Works with existing, already-connected ESP8266 devices without needing any code re-upload!
+  - Pairs gorgeously with **Festive Heartbeat Pulse** (rhythmic pulsing with shifting colors) and **Solid Color Flasher**.
+- **1-Tap Direction Invert / Reverse Flow Toggle**:
+  - Invert flow direction from the web UI if physical wiring was routed from the opposite side of the gallery.
 - **Non-Blocking Architecture**:
   - The ESP8266 animation loop runs at 80 FPS without any micro-stutters or pauses during server sync.
 
